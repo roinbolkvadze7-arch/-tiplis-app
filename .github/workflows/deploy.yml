@@ -24,10 +24,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Inject Supabase credentials
+      - name: Inject Supabase anon key
+        env:
+          ANON: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
-          sed -i "s#YOUR_SUPABASE_URL#${{ secrets.SUPABASE_URL }}#g" index.html
-          sed -i "s#YOUR_SUPABASE_ANON_KEY#${{ secrets.SUPABASE_ANON_KEY }}#g" index.html
+          if [ -z "$ANON" ]; then
+            echo "::error::Secret SUPABASE_ANON_KEY is empty. Add it: Repo Settings → Secrets → Actions."
+            exit 1
+          fi
+          sed -i "s#YOUR_SUPABASE_ANON_KEY#$ANON#g" index.html
+          if grep -q 'YOUR_SUPABASE_ANON_KEY' index.html; then
+            echo "::error::Placeholder was not replaced — check index.html contains exactly YOUR_SUPABASE_ANON_KEY"
+            exit 1
+          fi
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

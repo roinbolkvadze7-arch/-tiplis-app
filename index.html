@@ -405,8 +405,8 @@ input[readonly]:focus{border-color:var(--border);box-shadow:none;}
 // ============================================================
 // SUPABASE CONFIG
 // ============================================================
-// GitHub Actions replaces these placeholders (see .github/workflows/deploy.yml). For local dev, paste your URL + anon key here.
-const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+// Project URL (საჯარო). Anon key: ლოკალურად ჩასვით ან GitHub Secret SUPABASE_ANON_KEY → Actions ჩაამატებს.
+const SUPABASE_URL = 'https://anpobyoybrdafoxsjcpo.supabase.co';
 const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
 // ============================================================
 const sb =
@@ -425,9 +425,9 @@ function load(v){document.getElementById('lov').classList.toggle('on',v);}
 
 async function init(){
   load(true);
-  if(!sb||!SUPABASE_URL||SUPABASE_URL==='YOUR_SUPABASE_URL'||!SUPABASE_ANON_KEY||SUPABASE_ANON_KEY==='YOUR_SUPABASE_ANON_KEY'){
+  if(!sb||!SUPABASE_ANON_KEY||SUPABASE_ANON_KEY==='YOUR_SUPABASE_ANON_KEY'){
     setDb('err','დააყენეთ Supabase');
-    toast('⚠️ ჩასვით SUPABASE_URL და SUPABASE_ANON_KEY index.html-ში (ან გამოიყენეთ GitHub Actions სეკრეტები)');
+    toast('⚠️ ჩასვით anon key: GitHub → Settings → Secrets → SUPABASE_ANON_KEY, ან ლოკალურად index.html-ში');
     users=[]; sellers=[]; acts=[]; curId=1;
     renderUserSel(); fillBuyer(); addRow();
     load(false);
