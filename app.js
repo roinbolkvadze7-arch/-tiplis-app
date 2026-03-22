@@ -85,28 +85,19 @@
     load(false);
   }
 
-  function closeMenu() {
-    const sb = document.getElementById('sidebar');
-    const ov = document.getElementById('sb-overlay');
-    if (sb) sb.classList.remove('open');
-    if (ov) ov.classList.remove('on');
-    document.body.classList.remove('nav-open');
-  }
-  function toggleMenu() {
-    const sb = document.getElementById('sidebar');
-    const ov = document.getElementById('sb-overlay');
-    if (!sb) return;
-    const on = sb.classList.toggle('open');
-    if (ov) ov.classList.toggle('on', on);
-    document.body.classList.toggle('nav-open', on);
+  function navFromTab(v) {
+    const ids = { act: 'nb-act', acts: 'nb-acts', sellers: 'nb-sellers', users: 'nb-users' };
+    nav(v, document.getElementById(ids[v]));
   }
 
   function nav(v, btn) {
-    closeMenu();
     document.querySelectorAll('.view').forEach((el) => el.classList.remove('on'));
     document.querySelectorAll('.nb').forEach((el) => el.classList.remove('on'));
+    document.querySelectorAll('.tab').forEach((el) => el.classList.remove('on'));
     document.getElementById('view-' + v).classList.add('on');
     if (btn) btn.classList.add('on');
+    const tab = document.querySelector('.tab[data-v="' + v + '"]');
+    if (tab) tab.classList.add('on');
     if (v === 'sellers') renderSellers();
     if (v === 'users') renderUsers();
     if (v === 'acts') {
@@ -723,8 +714,7 @@
   }
 
   window.TiflisApp = {
-    toggleMenu,
-    closeMenu,
+    navFromTab,
     nav,
     switchUser,
     saveUser,
