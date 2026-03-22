@@ -10,8 +10,13 @@
 </head>
 <body>
 <div class="app">
+<header class="mob-bar">
+  <button type="button" class="mob-menu" id="mob-menu-btn" aria-label="მენიუ" onclick="TiflisApp.toggleMenu()">☰</button>
+  <span class="mob-title">შპს ტიფლისი · შესყიდვის აქტი</span>
+</header>
+<div class="sb-overlay" id="sb-overlay" onclick="TiflisApp.closeMenu()" aria-hidden="true"></div>
 
-<aside class="sb">
+<aside class="sb" id="sidebar">
   <div class="sb-logo">
     <h1>შპს „ტიფლისი"</h1>
     <p>ს/კ 445575011</p>
