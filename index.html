@@ -152,7 +152,7 @@
   <div class="card">
     <div class="ch">
       <h3>გამყიდველები (<span id="sc">0</span>)</h3>
-      <button type="button" class="btn btn-p btn-sm" onclick="TiflisApp.openM('m-seller')">+ დამატება</button>
+      <button type="button" class="btn btn-p btn-sm" onclick="TiflisApp.openAddSeller()">+ დამატება</button>
     </div>
     <table class="dt"><thead><tr><th>#</th><th>სახელი გვარი</th><th>პირადი ნომერი</th><th>ქმედება</th></tr></thead><tbody id="sellers-body"></tbody></table>
   </div>
@@ -174,10 +174,11 @@
 
 <div class="mbg" id="m-seller">
   <div class="modal">
-    <h3>გამყიდველის დამატება</h3>
+    <h3 id="m-seller-title">გამყიდველის დამატება</h3>
+    <input type="hidden" id="ns-id" value="">
     <div class="fg"><label>სახელი გვარი</label><input type="text" id="ns-name" placeholder="მაგ: გიორგი მამულაშვილი"></div>
     <div class="fg"><label>პირადი ნომერი</label><input type="text" id="ns-pid" placeholder="11 ციფრი" maxlength="11"></div>
-    <div class="mfoot"><button type="button" class="btn btn-o" onclick="TiflisApp.closeM('m-seller')">გაუქმება</button><button type="button" class="btn btn-p" onclick="TiflisApp.saveSeller()">შენახვა</button></div>
+    <div class="mfoot"><button type="button" class="btn btn-o" onclick="TiflisApp.closeSellerModal()">გაუქმება</button><button type="button" class="btn btn-p" onclick="TiflisApp.saveSeller()">შენახვა</button></div>
   </div>
 </div>
 

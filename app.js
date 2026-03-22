@@ -18,6 +18,7 @@
     sellers = [],
     acts = [],
     curId = 1;
+  let selectedSellerId = null;
 
   function escHtml(t) {
     return String(t)
@@ -184,9 +185,30 @@
         (s, i) => `
     <tr><td>${i + 1}</td><td style="font-weight:600">${escHtml(s.name)}</td><td style="font-family:monospace;font-size:12px">${escHtml(s.pid)}</td>
     <td><button type="button" class="bic" onclick="TiflisApp.pickSeller(${s.id})" title="აქტში გამოყენება">✅</button>
+    <button type="button" class="bic" onclick="TiflisApp.openEditSeller(${s.id})" title="რედაქტირება">✏️</button>
     <button type="button" class="bic" onclick="TiflisApp.delSeller(${s.id})" title="წაშლა">🗑</button></td></tr>`
       )
       .join('');
+  }
+  function openAddSeller() {
+    document.getElementById('ns-id').value = '';
+    document.getElementById('ns-name').value = '';
+    document.getElementById('ns-pid').value = '';
+    document.getElementById('m-seller-title').textContent = 'გამყიდველის დამატება';
+    openM('m-seller');
+  }
+  function openEditSeller(id) {
+    const s = sellers.find((x) => String(x.id) === String(id));
+    if (!s) return;
+    document.getElementById('ns-id').value = String(s.id);
+    document.getElementById('ns-name').value = s.name;
+    document.getElementById('ns-pid').value = s.pid;
+    document.getElementById('m-seller-title').textContent = 'გამყიდველის რედაქტირება';
+    openM('m-seller');
+  }
+  function closeSellerModal() {
+    document.getElementById('ns-id').value = '';
+    closeM('m-seller');
   }
   async function saveSeller() {
     if (!sb) {
@@ -195,23 +217,36 @@
     }
     const name = document.getElementById('ns-name').value.trim(),
       pid = document.getElementById('ns-pid').value.trim();
+    const editId = document.getElementById('ns-id').value.trim();
     if (!name || !pid) {
       toast('შეავსეთ ყველა ველი');
       return;
     }
     load(true);
-    const { data, error } = await sb.from('sellers').insert([{ name, pid }]).select().single();
+    let data, error;
+    if (editId) {
+      ({ data, error } = await sb.from('sellers').update({ name, pid }).eq('id', editId).select().single());
+    } else {
+      ({ data, error } = await sb.from('sellers').insert([{ name, pid }]).select().single());
+    }
     load(false);
     if (error) {
       toast('შეცდომა: ' + error.message);
       return;
     }
-    sellers.push(data);
-    closeM('m-seller');
-    renderSellers();
-    toast('გამყიდველი დამატებულია ✓');
+    if (editId) {
+      const ix = sellers.findIndex((x) => String(x.id) === String(editId));
+      if (ix >= 0) sellers[ix] = data;
+      if (String(selectedSellerId) === String(editId)) applySeller(data);
+      toast('გამყიდველი განახლებულია ✓');
+    } else {
+      sellers.push(data);
+      toast('გამყიდველი დამატებულია ✓');
+    }
+    closeSellerModal();
     document.getElementById('ns-name').value = '';
     document.getElementById('ns-pid').value = '';
+    renderSellers();
   }
   async function delSeller(id) {
     if (!sb) {
@@ -260,6 +295,7 @@
     document.getElementById('sdrop').style.display = 'none';
   }
   function applySeller(s) {
+    selectedSellerId = s.id;
     document.getElementById('seller-inp').value = s.name;
     document.getElementById('seller-pid').value = s.pid;
     document.getElementById('sig-seller').textContent = s.name;
@@ -396,6 +432,7 @@
   }
 
   function clearAct() {
+    selectedSellerId = null;
     ['act-day', 'act-month'].forEach((id) => (document.getElementById(id).value = ''));
     document.getElementById('act-year').value = '2026';
     document.getElementById('seller-inp').value = '';
@@ -673,6 +710,9 @@
     switchUser,
     saveUser,
     deleteUser,
+    openAddSeller,
+    openEditSeller,
+    closeSellerModal,
     saveSeller,
     delSeller,
     pickSeller,
