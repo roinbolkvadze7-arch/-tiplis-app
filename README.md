@@ -28,6 +28,11 @@
 
 თუ კოდს **`/-tiplis-app`** რეპოში ატვირთავ, **ამ URL-ზე** გახსენი საიტი — `tiplis-app` მისამართი სხვა რეპოს შიგთავსია და Supabase იქ არ განახლდება.
 
+### თუ `-tiplis-app` URL-ზე მაინც წითელია Supabase
+1. **Settings → Environments → github-pages** → **Environment secrets** → დაამატე **`SUPABASE_ANON_KEY`** (იგივე მნიშვნელობა). ზოგჯერ workflow `environment: github-pages`-ით ამ გარემოს სეკრეტებს ელოდება.  
+2. Actions → ბოლო run → ნაბიჯი **Inject Supabase anon key** — ლოგში უნდა ჩანდეს `Supabase anon injected, length: ...` (რიცხვი ~200+).  
+3. ბრაუზერში გახსენი გვერდი → **Ctrl+U** (View Source) → მოძებნე `YOUR_SUPABASE_ANON_KEY` — **არ უნდა** იყოს; თუ ჩანს, inject ვერ მოხერხდა.
+
 ### ნაბიჯი 3: GitHub Pages ჩართვა
 1. გადადით **Settings > Pages**
 2. Source: **GitHub Actions**
