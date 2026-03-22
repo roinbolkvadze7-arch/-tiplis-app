@@ -2,7 +2,7 @@
 <html lang="ka">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>შესყიდვის აქტი — შპს ტიფლისი</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230f172a'/%3E%3Cpath fill='%2394a3b8' d='M8 9h16v2.2H8zm0 5.5h12v2.2H8zm0 5.5h14v2.2H8z'/%3E%3C/svg%3E" type="image/svg+xml">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -10,31 +10,32 @@
 </head>
 <body>
 <div class="app">
-<div class="left-rail">
-  <div class="rail-brand mob-only">შპს ტიფლისი · აქტი</div>
-  <aside class="sb">
-    <div class="sb-logo desk-only">
-      <h1>შპს „ტიფლისი"</h1>
-      <p>ს/კ 445575011</p>
-    </div>
-    <nav class="sb-nav desk-only">
-      <div class="nav-grp">მენიუ</div>
-      <button type="button" class="nb on" id="nb-act" onclick="TiflisApp.nav('act',this)"><span class="ic">📄</span>ახალი აქტი</button>
-      <button type="button" class="nb" id="nb-acts" onclick="TiflisApp.nav('acts',this)"><span class="ic">🗂</span>შესყიდვის აქტები</button>
-      <div class="nav-grp">ბაზები</div>
-      <button type="button" class="nb" id="nb-sellers" onclick="TiflisApp.nav('sellers',this)"><span class="ic">👥</span>გამყიდველები</button>
-      <button type="button" class="nb" id="nb-users" onclick="TiflisApp.nav('users',this)"><span class="ic">🔑</span>მომხმარებლები</button>
-    </nav>
-    <div class="sb-hint desk-only"><a href="https://roinbolkvadze7-arch.github.io/-tiplis-app/" target="_blank" rel="noopener">სწორი URL: /-tiplis-app/</a></div>
-  </aside>
-  <div class="rail-foot">
-    <div class="db-status"><div class="db-dot spin" id="db-dot"></div><span class="db-lbl-t" id="db-lbl">Supabase...</span></div>
-    <div class="sb-user">
-      <div class="lbl desk-only">შესული მომხმარებელი</div>
-      <select id="cur-sel" onchange="TiflisApp.switchUser(this.value)" aria-label="მომხმარებელი"></select>
-    </div>
+<header class="mob-bar">
+  <button type="button" class="mob-menu" id="mob-menu-btn" aria-label="მენიუ" onclick="TiflisApp.toggleMenu()">☰</button>
+  <span class="mob-title">შპს ტიფლისი · შესყიდვის აქტი</span>
+</header>
+<div class="sb-overlay" id="sb-overlay" onclick="TiflisApp.closeMenu()" aria-hidden="true"></div>
+
+<aside class="sb" id="sidebar">
+  <div class="sb-logo">
+    <h1>შპს „ტიფლისი"</h1>
+    <p>ს/კ 445575011</p>
   </div>
-</div>
+  <nav class="sb-nav">
+    <div class="nav-grp">მენიუ</div>
+    <button type="button" class="nb on" id="nb-act" onclick="TiflisApp.nav('act',this)"><span class="ic">📄</span>ახალი აქტი</button>
+    <button type="button" class="nb" onclick="TiflisApp.nav('acts',this)"><span class="ic">🗂</span>შესყიდვის აქტები</button>
+    <div class="nav-grp">ბაზები</div>
+    <button type="button" class="nb" onclick="TiflisApp.nav('sellers',this)"><span class="ic">👥</span>გამყიდველები</button>
+    <button type="button" class="nb" onclick="TiflisApp.nav('users',this)"><span class="ic">🔑</span>მომხმარებლები</button>
+  </nav>
+  <div class="sb-hint"><a href="https://roinbolkvadze7-arch.github.io/-tiplis-app/" target="_blank" rel="noopener">სწორი URL: /-tiplis-app/ (ტირე წინ)</a></div>
+  <div class="db-status"><div class="db-dot spin" id="db-dot"></div><span style="color:#475569;font-size:10px" id="db-lbl">Supabase...</span></div>
+  <div class="sb-user">
+    <div class="lbl">შესული მომხმარებელი</div>
+    <select id="cur-sel" onchange="TiflisApp.switchUser(this.value)"></select>
+  </div>
+</aside>
 
 <main class="main">
 
@@ -174,13 +175,6 @@
 </div>
 
 </main>
-
-<nav class="tab-bar" aria-label="ნავიგაცია">
-  <button type="button" class="tab on" id="tab-act" data-v="act" onclick="TiflisApp.navFromTab('act')"><span class="tic">📄</span><span>აქტი</span></button>
-  <button type="button" class="tab" id="tab-acts" data-v="acts" onclick="TiflisApp.navFromTab('acts')"><span class="tic">🗂</span><span>აქტები</span></button>
-  <button type="button" class="tab" id="tab-sellers" data-v="sellers" onclick="TiflisApp.navFromTab('sellers')"><span class="tic">👥</span><span>გამყიდვ.</span></button>
-  <button type="button" class="tab" id="tab-users" data-v="users" onclick="TiflisApp.navFromTab('users')"><span class="tic">🔑</span><span>იუზერები</span></button>
-</nav>
 </div>
 
 <div class="mbg" id="m-seller">
