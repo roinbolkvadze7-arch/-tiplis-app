@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>შესყიდვის აქტი — შპს ტიფლისი</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -200,7 +200,7 @@ input[readonly]:focus{border-color:var(--border);box-shadow:none;}
   </div>
   <nav class="sb-nav">
     <div class="nav-grp">მენიუ</div>
-    <button class="nb on" onclick="nav('act',this)"><span class="ic">📄</span>ახალი აქტი</button>
+    <button type="button" class="nb on" id="nb-act" onclick="nav('act',this)"><span class="ic">📄</span>ახალი აქტი</button>
     <button class="nb" onclick="nav('acts',this)"><span class="ic">🗂</span>შესყიდვის აქტები</button>
     <div class="nav-grp">ბაზები</div>
     <button class="nb" onclick="nav('sellers',this)"><span class="ic">👥</span>გამყიდველები</button>
@@ -312,7 +312,7 @@ input[readonly]:focus{border-color:var(--border);box-shadow:none;}
   <div class="card">
     <div class="ch">
       <h3>ყველა აქტი (<span id="act-cnt">0</span>)</h3>
-      <button class="btn btn-p btn-sm" onclick="nav('act',document.querySelector('.nb'))">+ ახალი აქტი</button>
+      <button type="button" class="btn btn-p btn-sm" onclick="nav('act',document.getElementById('nb-act'))">+ ახალი აქტი</button>
     </div>
     <div class="cb">
       <div class="filter-bar">
@@ -405,11 +405,14 @@ input[readonly]:focus{border-color:var(--border);box-shadow:none;}
 // ============================================================
 // SUPABASE CONFIG
 // ============================================================
-const SUPABASE_URL = 'https://anpobyoybrdafoxsjcpo.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFucG9ieW95YnJkYWZveHNqY3BvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxNzUwOTgsImV4cCI6MjA4OTc1MTA5OH0.7ATPZ6A0fGRvv_ioMycOdNsWQpDe50BG7MbWf8PYuU0';
+// GitHub Actions replaces these placeholders (see .github/workflows/deploy.yml). For local dev, paste your URL + anon key here.
+const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
 // ============================================================
-const { createClient } = supabase;
-const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const sb =
+  typeof supabase !== 'undefined' && typeof supabase.createClient === 'function'
+    ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+    : null;
 
 const UNITS = ['კგ','გრ','ც','ლ','მლ','კომ','ბლ','მ'];
 let users=[], sellers=[], acts=[], curId=1;
@@ -422,6 +425,14 @@ function load(v){document.getElementById('lov').classList.toggle('on',v);}
 
 async function init(){
   load(true);
+  if(!sb||!SUPABASE_URL||SUPABASE_URL==='YOUR_SUPABASE_URL'||!SUPABASE_ANON_KEY||SUPABASE_ANON_KEY==='YOUR_SUPABASE_ANON_KEY'){
+    setDb('err','დააყენეთ Supabase');
+    toast('⚠️ ჩასვით SUPABASE_URL და SUPABASE_ANON_KEY index.html-ში (ან გამოიყენეთ GitHub Actions სეკრეტები)');
+    users=[]; sellers=[]; acts=[]; curId=1;
+    renderUserSel(); fillBuyer(); addRow();
+    load(false);
+    return;
+  }
   try{
     const [u,s,a]=await Promise.all([
       sb.from('users').select('*').order('id'),
@@ -429,15 +440,14 @@ async function init(){
       sb.from('acts').select('*').order('id',{ascending:false})
     ]);
     if(u.error||s.error||a.error) throw u.error||s.error||a.error;
-    users=u.data; sellers=s.data; acts=a.data;
+    users=u.data||[]; sellers=s.data||[]; acts=a.data||[];
     setDb('ok','Supabase ✓');
-    curId=parseInt(localStorage.getItem('t_cur'))||(users[0]?.id)||1;
+    curId=parseInt(localStorage.getItem('t_cur'),10)||(users[0]?.id)||1;
+    if(users.length&&!users.find(x=>x.id===curId)){ curId=users[0].id; localStorage.setItem('t_cur',String(curId)); }
   }catch(e){
     setDb('err','კავშირის შეცდომა');
-    toast('⚠️ Supabase შეცდომა — შეამოწმეთ credentials');
-    users=[{id:1,name:'გიორგი ბერიძე',pid:'61006015436'}];
-    sellers=[{id:1,name:'ლევან ხვედელიძე',pid:'61004046896'}];
-    acts=[]; curId=1;
+    toast('⚠️ Supabase შეცდომა — შეამოწმეთ credentials და SQL სქემა');
+    users=[]; sellers=[]; acts=[]; curId=1;
   }
   renderUserSel(); fillBuyer(); addRow();
   load(false);
@@ -474,10 +484,11 @@ function renderUsers(){
   document.getElementById('users-body').innerHTML=users.map((u,i)=>`
     <tr><td>${i+1}</td><td style="font-weight:600">${u.name}</td><td style="font-family:monospace;font-size:12px">${u.pid}</td>
     <td>${u.id===curId?'<span class="badge b-green">შესული</span>':'<span class="badge b-blue">მომხმარებელი</span>'}</td>
-    <td><button class="bic" onclick="switchUser(${u.id});nav('act',document.querySelector('.nb'))" title="შესვლა">🔐</button>
+    <td><button type="button" class="bic" onclick="switchUser(${u.id});nav('act',document.getElementById('nb-act'))" title="შესვლა">🔐</button>
     <button class="bic" onclick="deleteUser(${u.id})" title="წაშლა">🗑</button></td></tr>`).join('');
 }
 async function saveUser(){
+  if(!sb){toast('Supabase არ არის კონფიგურირებული');return;}
   const name=document.getElementById('nu-name').value.trim(),pid=document.getElementById('nu-pid').value.trim();
   if(!name||!pid){toast('შეავსეთ ყველა ველი');return;}
   load(true);
@@ -489,6 +500,7 @@ async function saveUser(){
   document.getElementById('nu-name').value=''; document.getElementById('nu-pid').value='';
 }
 async function deleteUser(id){
+  if(!sb){toast('Supabase არ არის კონფიგურირებული');return;}
   if(id===curId){toast('შესული მომხმარებლის წაშლა შეუძლებელია');return;}
   await sb.from('users').delete().eq('id',id);
   users=users.filter(x=>x.id!==id); renderUserSel(); renderUsers();
@@ -503,6 +515,7 @@ function renderSellers(){
     <button class="bic" onclick="delSeller(${s.id})" title="წაშლა">🗑</button></td></tr>`).join('');
 }
 async function saveSeller(){
+  if(!sb){toast('Supabase არ არის კონფიგურირებული');return;}
   const name=document.getElementById('ns-name').value.trim(),pid=document.getElementById('ns-pid').value.trim();
   if(!name||!pid){toast('შეავსეთ ყველა ველი');return;}
   load(true);
@@ -514,10 +527,11 @@ async function saveSeller(){
   document.getElementById('ns-name').value=''; document.getElementById('ns-pid').value='';
 }
 async function delSeller(id){
+  if(!sb){toast('Supabase არ არის კონფიგურირებული');return;}
   await sb.from('sellers').delete().eq('id',id);
   sellers=sellers.filter(x=>x.id!==id); renderSellers();
 }
-function pickSeller(id){const s=sellers.find(x=>x.id===id);if(s){applySeller(s);nav('act',document.querySelector('.nb'));toast('გამყიდველი შეირჩა ✓');}}
+function pickSeller(id){const s=sellers.find(x=>x.id===id);if(s){applySeller(s);nav('act',document.getElementById('nb-act'));toast('გამყიდველი შეირჩა ✓');}}
 
 // ====== SELLER SEARCH ======
 function sSearch(){
@@ -586,6 +600,7 @@ function calcGrand(){
 
 // ====== SAVE ACT ======
 async function saveAct(){
+  if(!sb){toast('Supabase არ არის კონფიგურირებული');return;}
   const day=document.getElementById('act-day').value.trim();
   const month=document.getElementById('act-month').value.trim();
   const year=document.getElementById('act-year').value.trim();
@@ -594,7 +609,8 @@ async function saveAct(){
   const sellerName=document.getElementById('seller-inp').value.trim();
   const sellerPid=document.getElementById('seller-pid').value.trim();
 
-  if(!day||!month){toast('შეავსეთ თარიღი');return;}
+  if(!day||!month||!year){toast('შეავსეთ თარიღი (დღე / თვე / წელი)');return;}
+  if(!buyerName||!buyerPid){toast('აირჩიეთ მყიდველი');return;}
   if(!sellerName){toast('შეარჩიეთ გამყიდველი');return;}
 
   const goods=[];
@@ -705,16 +721,20 @@ function clearFilters(){
 }
 
 function buildActHTML(a){
-  const rows=a.goods.map((g,i)=>`
+  const goodsArr=Array.isArray(a.goods)?a.goods:[];
+  const rows=goodsArr.map((g,i)=>{
+    const pr=Number(g.price);
+    return `
     <tr>
       <td style="text-align:center;color:#94a3b8;font-size:11px;padding:7px 5px">${i+1}</td>
       <td style="padding:7px 8px">${g.name}</td>
       <td style="text-align:center;padding:7px 5px">${g.unit}</td>
       <td style="text-align:center;padding:7px 5px">${g.qty}</td>
-      <td style="text-align:center;padding:7px 5px">${g.price.toLocaleString('ka-GE',{minimumFractionDigits:2})}</td>
-      <td style="text-align:center;font-weight:700;padding:7px 5px">${Math.floor(g.sum)}</td>
-      <td style="text-align:center;font-weight:700;padding:7px 5px">${String(Math.round((g.sum-Math.floor(g.sum))*100)).padStart(2,'0')}</td>
-    </tr>`).join('');
+      <td style="text-align:center;padding:7px 5px">${pr.toLocaleString('ka-GE',{minimumFractionDigits:2})}</td>
+      <td style="text-align:center;font-weight:700;padding:7px 5px">${Math.floor(Number(g.sum))}</td>
+      <td style="text-align:center;font-weight:700;padding:7px 5px">${String(Math.round((Number(g.sum)-Math.floor(Number(g.sum)))*100)).padStart(2,'0')}</td>
+    </tr>`;
+  }).join('');
   const dd=a.display_date||a.displayDate;
   const bn=a.buyer_name||a.buyerName;
   const bp=a.buyer_pid||a.buyerPid;
@@ -761,21 +781,21 @@ function buildActHTML(a){
       </div>
       <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:10px 14px;margin-bottom:20px">
         <div style="font-size:9px;font-weight:700;color:#059669;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:3px">სულ თანხა სიტყვიერად</div>
-        <div style="font-size:14px;font-weight:600;color:#065f46">${a.totalWords}</div>
+        <div style="font-size:14px;font-weight:600;color:#065f46">${tw}</div>
       </div>
       <div style="font-size:9px;font-weight:700;color:#94a3b8;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;padding-bottom:6px;border-bottom:1.5px solid #e2e8f0">ხელმოწერები</div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px">
         <div>
           <div style="font-size:9px;font-weight:700;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-bottom:7px">თანხა გადაიხადა (მყიდველი)</div>
-          <div style="font-size:13px;font-weight:600;color:#1e293b;padding-bottom:7px;border-bottom:2px solid #cbd5e1;min-height:28px">${a.buyerName}</div>
+          <div style="font-size:13px;font-weight:600;color:#1e293b;padding-bottom:7px;border-bottom:2px solid #cbd5e1;min-height:28px">${bn}</div>
         </div>
         <div>
           <div style="font-size:9px;font-weight:700;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-bottom:7px">თანხა მიიღო (გამყიდველი)</div>
-          <div style="font-size:13px;font-weight:600;color:#1e293b;padding-bottom:7px;border-bottom:2px solid #cbd5e1;min-height:28px">${a.sellerName}</div>
+          <div style="font-size:13px;font-weight:600;color:#1e293b;padding-bottom:7px;border-bottom:2px solid #cbd5e1;min-height:28px">${sn}</div>
         </div>
         <div>
           <div style="font-size:9px;font-weight:700;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-bottom:7px">ხელმძღვანელი</div>
-          <div style="font-size:13px;font-weight:600;color:#1e293b;padding-bottom:7px;border-bottom:2px solid #cbd5e1;min-height:28px">${a.managerName||''}</div>
+          <div style="font-size:13px;font-weight:600;color:#1e293b;padding-bottom:7px;border-bottom:2px solid #cbd5e1;min-height:28px">${mn}</div>
         </div>
       </div>
     </div>`;
@@ -794,33 +814,22 @@ function printAct(id){
   const a=acts.find(x=>x.id===id);if(!a)return;
   const html=`<!DOCTYPE html><html lang="ka"><head><meta charset="UTF-8">
     <title>შესყიდვის აქტი #${a.id}</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
       *{box-sizing:border-box;margin:0;padding:0;}
       body{font-family:'Noto Sans Georgian',sans-serif;padding:14mm;color:#1e293b;background:#fff;}
       @page{size:A4;margin:12mm 14mm;}
-      
-/* DB STATUS */
-.db-status{padding:6px 16px;display:flex;align-items:center;gap:6px;}
-.db-dot{width:7px;height:7px;border-radius:50%;background:#334155;flex-shrink:0;}
-.db-dot.ok{background:#22c55e;}.db-dot.err{background:#ef4444;}.db-dot.spin{background:#f59e0b;animation:dbp 1s infinite;}
-@keyframes dbp{0%,100%{opacity:1;}50%{opacity:.3;}}
-.lov{position:fixed;inset:0;background:rgba(255,255,255,.85);z-index:2000;display:none;align-items:center;justify-content:center;flex-direction:column;gap:10px;}
-.lov.on{display:flex;}
-.spinner{width:30px;height:30px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:sp .7s linear infinite;}
-@keyframes sp{to{transform:rotate(360deg);}}
-
 @media print{body{padding:0;}}
     </style>
     </head><body>${buildActHTML(a)}</body></html>`;
   const w=window.open('','_blank','width=860,height=1100');
   w.document.write(html);
   w.document.close();
-  w.onload=()=>{w.focus();w.print();}
+  setTimeout(()=>{try{w.focus();w.print();}catch(_){}},250);
 }
 
 async function deleteAct(id){
+  if(!sb){toast('Supabase არ არის კონფიგურირებული');return;}
   const{error}=await sb.from('acts').delete().eq('id',id);
   if(error){toast('შეცდომა');return;}
   acts=acts.filter(x=>x.id!==id); renderActs(); renderStats(); toast('აქტი წაიშალა');

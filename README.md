@@ -9,13 +9,17 @@
    - **Project URL** → `Settings > API > Project URL`  
    - **anon public key** → `Settings > API > anon public`
 
+### ლოკალური ტესტი (ლეპტოპზე)
+`index.html`-ში ჩასვით **Project URL** და **anon public key** `YOUR_SUPABASE_URL` / `YOUR_SUPABASE_ANON_KEY`-ის ნაცვლად, ან გაუშვით `npx serve .` იმ ფოლდერიდან სადაც პროექტია.
+
 ### ნაბიჯი 2: GitHub Repository-ს მომზადება
-1. შექმენით ახალი GitHub repository
+1. შექმენით ახალი GitHub repository (მაგ. [\-tiplis-app](https://github.com/roinbolkvadze7-arch/-tiplis-app))
 2. ატვირთეთ ეს ფაილები (`index.html`, `.github/`)
 3. გადადით **Settings > Secrets and variables > Actions**
 4. დაამატეთ 2 secret:
    - `SUPABASE_URL` = თქვენი Project URL
-   - `SUPABASE_ANON_KEY` = თქვენი anon public key
+   - `SUPABASE_ANON_KEY` = თქვენი anon public key  
+   Push-ზე workflow ავტომატურად ჩაანაცვლებს placeholder-ებს `index.html`-ში.
 
 ### ნაბიჯი 3: GitHub Pages ჩართვა
 1. გადადით **Settings > Pages**
