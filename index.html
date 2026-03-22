@@ -405,8 +405,8 @@ input[readonly]:focus{border-color:var(--border);box-shadow:none;}
 // ============================================================
 // SUPABASE CONFIG
 // ============================================================
-const SUPABASE_URL = 'YOUR_SUPABASE_URL';
-const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+const SUPABASE_URL = 'https://anpobyoybrdafoxsjcpo.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFucG9ieW95YnJkYWZveHNqY3BvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxNzUwOTgsImV4cCI6MjA4OTc1MTA5OH0.7ATPZ6A0fGRvv_ioMycOdNsWQpDe50BG7MbWf8PYuU0';
 // ============================================================
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -715,7 +715,6 @@ function buildActHTML(a){
       <td style="text-align:center;font-weight:700;padding:7px 5px">${Math.floor(g.sum)}</td>
       <td style="text-align:center;font-weight:700;padding:7px 5px">${String(Math.round((g.sum-Math.floor(g.sum))*100)).padStart(2,'0')}</td>
     </tr>`).join('');
-  const lari=Math.floor(a.total),tetri=String(Math.round((a.total-Math.floor(a.total))*100)).padStart(2,'0');
   const dd=a.display_date||a.displayDate;
   const bn=a.buyer_name||a.buyerName;
   const bp=a.buyer_pid||a.buyerPid;
