@@ -24,7 +24,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Node ინაცვლებს უსაფრთხოდ (sed აფუჭებს JWT-ს თუ შიგნით არის & ან სხვა სპეც. სიმბოლო)
+      # anon key იყრება config.js-ში (არა index.html-ში)
       - name: Inject Supabase anon key
         env:
           ANON: ${{ secrets.SUPABASE_ANON_KEY }}
@@ -33,22 +33,23 @@ jobs:
           const fs = require('fs');
           const k = (process.env.ANON || '').trim();
           if (!k) {
-            console.error('::error::SUPABASE_ANON_KEY ცარიელია. დაამატე: Settings → Secrets → Actions (ან Environment github-pages → secrets).');
+            console.error('::error::SUPABASE_ANON_KEY ცარიელია. Settings → Secrets → Actions.');
             process.exit(1);
           }
-          let html = fs.readFileSync('index.html', 'utf8');
+          const path = 'config.js';
+          let text = fs.readFileSync(path, 'utf8');
           const ph = 'YOUR_SUPABASE_ANON_KEY';
-          if (!html.includes(ph)) {
-            console.error('::error::index.html-ში არ მოიძებნა ' + ph);
+          if (!text.includes(ph)) {
+            console.error('::error::config.js-ში არ მოიძებნა ' + ph);
             process.exit(1);
           }
-          html = html.split(ph).join(k);
-          if (html.includes(ph)) {
+          text = text.split(ph).join(k);
+          if (text.includes(ph)) {
             console.error('::error::ჩანაცვლება ვერ დასრულდა');
             process.exit(1);
           }
-          fs.writeFileSync('index.html', html);
-          console.log('Supabase anon injected, length:', k.length);
+          fs.writeFileSync(path, text);
+          console.log('Supabase anon injected into config.js, length:', k.length);
           NODEEOF
 
       - name: Setup Pages
