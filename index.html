@@ -9,7 +9,23 @@
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<div class="app">
+<div class="auth-gate" id="auth-gate">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <h1>შპს „ტიფლისი"</h1>
+      <p>შესყიდვის აქტი · 4-ციფრიანი PIN</p>
+    </div>
+    <form id="pin-form" class="pin-form" action="#" autocomplete="off">
+      <label for="pin-inp" class="pin-lbl">შეიყვანეთ PIN</label>
+      <input type="password" id="pin-inp" class="pin-inp" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="••••" autocomplete="one-time-code" aria-describedby="pin-hint">
+      <p id="pin-hint" class="pin-hint">საცდელი PIN (ნაგულისხმევი): <strong>1234</strong> — შეცვლა: <code>config.js</code> → <code>appLoginPin</code></p>
+      <div id="pin-msg" class="pin-msg" role="alert"></div>
+      <button type="submit" class="btn btn-p pin-submit" id="pin-submit">შესვლა</button>
+    </form>
+  </div>
+</div>
+
+<div class="app app-hidden" id="main-app">
 <header class="mob-bar">
   <button type="button" class="mob-menu" id="mob-menu-btn" aria-label="მენიუ" onclick="TiflisApp.toggleMenu()">☰</button>
   <span class="mob-title">შპს ტიფლისი · შესყიდვის აქტი</span>
@@ -34,6 +50,7 @@
   <div class="sb-user">
     <div class="lbl">შესული მომხმარებელი</div>
     <select id="cur-sel" onchange="TiflisApp.switchUser(this.value)"></select>
+    <button type="button" class="btn-logout" onclick="TiflisApp.logout()">PIN / გასვლა</button>
   </div>
 </aside>
 

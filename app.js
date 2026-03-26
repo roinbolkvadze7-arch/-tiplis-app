@@ -11,7 +11,12 @@
   function supaKey() {
     return (cfg().supabaseAnonKey || '').trim();
   }
+  function appPin() {
+    const p = (cfg().appLoginPin != null ? String(cfg().appLoginPin) : '1234').trim();
+    return p || '1234';
+  }
 
+  const STORAGE_PIN_OK = 'tiflis_pin_ok';
   let sb = null;
   const UNITS = ['კგ', 'გრ', 'ც', 'ლ', 'მლ', 'კომ', 'ბლ', 'მ'];
   let users = [],
@@ -19,6 +24,7 @@
     acts = [],
     curId = 1;
   let selectedSellerId = null;
+  let rc = 0;
 
   function escHtml(t) {
     return String(t)
@@ -36,6 +42,38 @@
     document.getElementById('lov').classList.toggle('on', v);
   }
 
+  function setPinMsg(t) {
+    const el = document.getElementById('pin-msg');
+    if (el) el.textContent = t || '';
+  }
+  function enterApp() {
+    const g = document.getElementById('auth-gate');
+    const app = document.getElementById('main-app');
+    if (g) g.classList.add('off');
+    if (app) app.classList.remove('app-hidden');
+  }
+  function exitApp() {
+    const g = document.getElementById('auth-gate');
+    const app = document.getElementById('main-app');
+    if (g) g.classList.remove('off');
+    if (app) app.classList.add('app-hidden');
+  }
+  function logout() {
+    try {
+      sessionStorage.removeItem(STORAGE_PIN_OK);
+    } catch (_) {}
+    users = [];
+    sellers = [];
+    acts = [];
+    curId = 1;
+    exitApp();
+    const pi = document.getElementById('pin-inp');
+    if (pi) pi.value = '';
+    setPinMsg('');
+    setDb('spin', 'Supabase...');
+    toast('გამოხვედით');
+  }
+
   async function init() {
     load(true);
     if (!sb || !supaKey() || supaKey() === PH) {
@@ -47,7 +85,13 @@
       curId = 1;
       renderUserSel();
       fillBuyer();
+      const gtb0 = document.getElementById('gtbody');
+      if (gtb0) {
+        gtb0.innerHTML = '';
+        rc = 0;
+      }
       addRow();
+      calcGrand();
       load(false);
       return;
     }
@@ -81,8 +125,37 @@
     }
     renderUserSel();
     fillBuyer();
+    const gtb = document.getElementById('gtbody');
+    if (gtb) {
+      gtb.innerHTML = '';
+      rc = 0;
+    }
     addRow();
+    calcGrand();
     load(false);
+  }
+
+  async function submitPin(ev) {
+    if (ev) ev.preventDefault();
+    setPinMsg('');
+    const inp = document.getElementById('pin-inp');
+    const raw = inp ? inp.value.replace(/\D/g, '') : '';
+    if (raw.length !== 4) {
+      setPinMsg('შეიყვანეთ ზუსტად 4 ციფრი.');
+      return;
+    }
+    if (raw !== appPin()) {
+      setPinMsg('არასწორი PIN.');
+      if (inp) inp.value = '';
+      return;
+    }
+    try {
+      sessionStorage.setItem(STORAGE_PIN_OK, '1');
+    } catch (_) {}
+    if (inp) inp.value = '';
+    enterApp();
+    await init();
+    toast('კეთილი იყოს თქვენი მობრძანება ✓');
   }
 
   function closeMenu() {
@@ -319,7 +392,6 @@
     closeDrop();
   }
 
-  let rc = 0;
   function addRow() {
     rc++;
     const tr = document.createElement('tr');
@@ -748,10 +820,20 @@
     printAct,
     deleteAct,
     openM,
-    closeM
+    closeM,
+    logout
   };
 
   async function boot() {
+    const pf = document.getElementById('pin-form');
+    if (pf) pf.addEventListener('submit', submitPin);
+    const pinInp = document.getElementById('pin-inp');
+    if (pinInp) {
+      pinInp.addEventListener('input', function () {
+        pinInp.value = pinInp.value.replace(/\D/g, '').slice(0, 4);
+      });
+    }
+
     for (let i = 0; i < 60; i++) {
       if (typeof supabase !== 'undefined' && typeof supabase.createClient === 'function') break;
       await new Promise((r) => setTimeout(r, 50));
@@ -762,7 +844,15 @@
       typeof supabase !== 'undefined' && typeof supabase.createClient === 'function' && url
         ? supabase.createClient(url, key || PH)
         : null;
-    await init();
+
+    let ok = false;
+    try {
+      ok = sessionStorage.getItem(STORAGE_PIN_OK) === '1';
+    } catch (_) {}
+    if (ok) {
+      enterApp();
+      await init();
+    }
   }
 
   if (document.readyState === 'loading') {
